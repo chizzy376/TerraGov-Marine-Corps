@@ -149,7 +149,6 @@ GLOBAL_LIST_INIT(wraith_banish_very_short_duration_list, typecacheof(list(
 	to_chat(owner, span_xenodanger("We are able to blink again."))
 	owner.playsound_local(owner, 'sound/effects/xeno_newlarva.ogg', 25, 0, 1)
 	return ..()
-
 // ***************************************
 // *********** Recall
 // ***************************************
