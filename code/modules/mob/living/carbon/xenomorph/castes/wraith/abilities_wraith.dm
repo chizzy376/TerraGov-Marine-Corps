@@ -170,11 +170,6 @@ GLOBAL_LIST_INIT(wraith_banish_very_short_duration_list, typecacheof(list(
 
 
 
-	if(!banish_check.banishment_target)
-		if(!silent)
-			to_chat(owner,span_xenodanger("We have no targets banished!"))
-		return FALSE
-
 
 ///Return TRUE if we have a block, return FALSE otherwise
 /proc/turf_block_check(atom/subject, atom/target, ignore_can_pass = FALSE, ignore_density = FALSE, ignore_closed_turf = FALSE, ignore_invulnerable = FALSE, ignore_objects = FALSE, ignore_mobs = FALSE, ignore_space = FALSE)
