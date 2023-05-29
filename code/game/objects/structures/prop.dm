@@ -112,6 +112,12 @@
 	density = TRUE
 	resistance_flags = RESIST_ALL
 
+/obj/structure/prop/mainship/holobarrier/passthrough
+	name = "\improper Pressure-sealed holobarrier"
+	icon = 'icons/effects/effects.dmi'
+	icon_state = "shield-blue"
+	density = FALSE
+
 /obj/structure/prop/mainship/deadai
 	name = "\improper deactivated AI"
 	desc = "A standard silicon unit assigned to manage the research duties of NT stations. This one is completely deactivated."
