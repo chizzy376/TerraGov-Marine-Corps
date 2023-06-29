@@ -72,7 +72,7 @@
 	action_icon_state = "pounce"
 	desc = "Leap at your target, tackling and disarming them."
 	ability_name = "pounce"
-	plasma_cost = 10
+	plasma_cost = 20
 	keybinding_signals = list(
 		KEYBINDING_NORMAL = COMSIG_XENOABILITY_POUNCE,
 	)
@@ -80,7 +80,7 @@
 	///How far can we pounce.
 	var/range = 6
 	///For how long will we stun the victim
-	var/victim_paralyze_time = 2 SECONDS
+	var/victim_paralyze_time = 1 SECONDS
 	///For how long will we freeze upon hitting our target
 	var/freeze_on_hit_time = 0.5 SECONDS
 
