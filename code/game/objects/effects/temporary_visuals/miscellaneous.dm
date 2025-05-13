@@ -114,7 +114,8 @@ GLOBAL_LIST_EMPTY(blood_particles)
 	anchored = FALSE
 	animate_movement = SLIDE_STEPS
 	randomdir = FALSE
-	vis_flags = VIS_INHERIT_LAYER | VIS_INHERIT_PLANE | VIS_INHERIT_ID
+	vis_flags = VIS_INHERIT_LAYER | VIS_INHERIT_PLANE
+	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 
 /obj/effect/temp_visual/after_image/Initialize(mapload, atom/owner, _duration = 0.5 SECONDS)
 	. = ..()
@@ -124,6 +125,8 @@ GLOBAL_LIST_EMPTY(blood_particles)
 	after_image.density = initial(density)
 	after_image.alpha = initial(alpha)
 	after_image.appearance_flags = RESET_COLOR|RESET_ALPHA|PASS_MOUSE
+	after_image.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+	after_image.layer = BELOW_MOB_LAYER
 	after_image.setDir(owner.dir)
 	after_image.pixel_x = owner.pixel_x
 	after_image.pixel_y = owner.pixel_y
@@ -159,10 +162,10 @@ GLOBAL_LIST_EMPTY(blood_particles)
 	flick("heavyimpact", src)
 
 /obj/effect/temp_visual/order
-	icon = 'icons/Marine/marine-items.dmi'
+	icon = 'icons/effects/orders.dmi'
 	var/icon_state_on
-	hud_possible = list(SQUAD_HUD_TERRAGOV, SQUAD_HUD_SOM)
-	duration = ORDER_DURATION
+	hud_possible = list(SQUAD_HUD_TERRAGOV, SQUAD_HUD_SOM, SQUAD_HUD_CLF)
+	duration = CIC_ORDER_DURATION
 	layer = TURF_LAYER
 
 /obj/effect/temp_visual/order/Initialize(mapload, faction)
@@ -193,7 +196,7 @@ GLOBAL_LIST_EMPTY(blood_particles)
 /obj/effect/temp_visual/order/rally_order
 	name = "rally order"
 	icon_state_on = "rally"
-	duration = RALLY_ORDER_DURATION
+	duration = CIC_ORDER_DURATION
 
 ///Set visuals for the hud
 /obj/effect/temp_visual/order/proc/set_visuals(faction)
@@ -203,7 +206,7 @@ GLOBAL_LIST_EMPTY(blood_particles)
 	var/image/holder = hud_list[hud_type]
 	if(!holder)
 		return
-	holder.icon = 'icons/Marine/marine-items.dmi'
+	holder.icon = 'icons/effects/orders.dmi'
 	holder.icon_state = icon_state_on
 	hud_list[hud_type] = holder
 
@@ -309,3 +312,23 @@ GLOBAL_LIST_EMPTY(blood_particles)
 	icon = 'icons/effects/effects.dmi'
 	icon_state = "extinguish"
 	duration = 0.5 SECONDS
+
+/// looping lightning effect useful for showing chargeup of [/obj/effect/temp_visual/lightning_discharge]
+/obj/effect/overlay/lightning_charge
+	icon = 'icons/effects/96x96.dmi'
+	icon_state = "lightning_charge"
+	layer = ABOVE_FLY_LAYER
+	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+	vis_flags = VIS_INHERIT_ID
+	color = COLOR_RED_LIGHT
+	pixel_x = -32
+	pixel_y = -32
+
+/obj/effect/temp_visual/lightning_discharge
+	icon = 'icons/effects/96x96.dmi'
+	icon_state = "lightning_discharge"
+	layer = ABOVE_FLY_LAYER
+	color = COLOR_RED_LIGHT
+	duration = 3
+	pixel_x = -32
+	pixel_y = -32

@@ -1,3 +1,36 @@
+/particles/mech_land
+	icon = 'icons/effects/96x96.dmi'
+	icon_state = "smoke3"
+	width = 750
+	height = 750
+	count = 25
+	spawning = 25
+	lifespan = 10
+	fade = 25
+	gradient = list("#BA9F6D", "#808080", "#FFFFFF")
+	color = generator(GEN_NUM, 0, 0.25)
+	color_change = generator(GEN_NUM, 0.08, 0.07)
+	velocity = generator(GEN_CIRCLE, 5, 15)
+	rotation = generator(GEN_NUM, -45, 45)
+	scale = 0.1
+	grow = 0.02
+	friction = 0.25
+
+/particles/mech_land_water
+	icon = 'icons/effects/96x96.dmi'
+	icon_state = "smoke4"
+	width = 750
+	height = 750
+	count = 25
+	spawning = 25
+	lifespan = 10
+	fade = 25
+	velocity = generator(GEN_CIRCLE, 5, 15)
+	rotation = generator(GEN_NUM, -45, 45)
+	scale = 0.1
+	grow = 0.02
+	friction = 0.25
+
 /***************** WELCOME TO MECHA.DM, ENJOY YOUR STAY *****************/
 
 /**
@@ -24,9 +57,10 @@
 	move_force = MOVE_FORCE_VERY_STRONG
 	move_resist = MOVE_FORCE_EXCEPTIONALLY_STRONG
 	resistance_flags = UNACIDABLE|XENO_DAMAGEABLE|PORTAL_IMMUNE|PLASMACUTTER_IMMUNE
-	atom_flags = BUMP_ATTACKABLE|PREVENT_CONTENTS_EXPLOSION
+	atom_flags = BUMP_ATTACKABLE|PREVENT_CONTENTS_EXPLOSION|CRITICAL_ATOM|DIRLOCK
+	appearance_flags = TILE_BOUND|PIXEL_SCALE|KEEP_TOGETHER
 	max_integrity = 300
-	soft_armor = list(MELEE = 20, BULLET = 10, LASER = 0, ENERGY = 0, BOMB = 10, BIO = 0, FIRE = 100, ACID = 100)
+	soft_armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, FIRE = 0, ACID = 0)
 	force = 5
 	move_delay = 1 SECONDS
 	COOLDOWN_DECLARE(mecha_bump_smash)
@@ -36,6 +70,7 @@
 	generic_canpass = FALSE
 	hud_possible = list(MACHINE_HEALTH_HUD, MACHINE_AMMO_HUD, ORDER_HUD)
 	mouse_pointer = 'icons/mecha/mecha_mouse.dmi'
+	facing_modifiers = list(VEHICLE_FRONT_ARMOUR = 0.5, VEHICLE_SIDE_ARMOUR = 1, VEHICLE_BACK_ARMOUR = 1.5)
 	///What direction will the mech face when entered/powered on? Defaults to South.
 	var/dir_in = SOUTH
 	///How much energy the mech will consume each time it moves. This variable is a backup for when leg actuators affect the energy drain.
@@ -46,8 +81,6 @@
 	var/melee_energy_drain = 15
 	///The minimum amount of energy charge consumed by leg overload
 	var/overload_step_energy_drain_min = 50
-	///Modifiers for directional damage reduction
-	var/list/facing_modifiers = list(MECHA_FRONT_ARMOUR = 0.5, MECHA_SIDE_ARMOUR = 1, MECHA_BACK_ARMOUR = 1.5)
 	///if we cant use our equipment(such as due to EMP)
 	var/equipment_disabled = FALSE
 	/// Keeps track of the mech's cell
@@ -70,6 +103,8 @@
 	var/completely_disabled = FALSE
 	///Whether this mech is allowed to move diagonally
 	var/allow_diagonal_movement = FALSE
+	///Whether this mech moves into a direct as soon as it goes to move. Basically, turn and step in the same key press.
+	var/pivot_step = FALSE
 	///Whether or not the mech destroys walls by running into it.
 	var/bumpsmash = FALSE
 
@@ -190,8 +225,22 @@
 	var/ui_y = 600
 	/// ref to screen object that displays in the middle of the UI
 	var/atom/movable/screen/mech_view/ui_view
-	///Current owning faction
-	var/faction
+	///holds the EMP timer
+	var/emp_timer
+
+// ******** TGMC VARS ******** //
+	///max amt of repairpacks we can store
+	var/max_repairpacks = 0
+	/// actual amt of repairpacks we have stored
+	var/stored_repairpacks = 0
+	/// How much energy we use per mech dash
+	var/dash_power_consumption = 500
+	/// dash_range
+	var/dash_range = 1
+	///cooldown time between dashes on greyscale mechs
+	var/dash_cooldown = 10 SECONDS
+	///determines if the mech does the footstep particles
+	var/no_footstep_particle = FALSE
 
 /obj/item/radio/mech //this has to go somewhere
 	subspace_transmission = TRUE
@@ -202,6 +251,8 @@
 	if(enclosed)
 		internal_tank = new (src)
 	RegisterSignal(src, COMSIG_MOVABLE_MOVED, PROC_REF(play_stepsound))
+	RegisterSignal(src, COMSIG_ELEMENT_JUMP_STARTED, PROC_REF(on_jump_start))
+	RegisterSignal(src, COMSIG_ELEMENT_JUMP_ENDED, PROC_REF(on_jump_land))
 
 	spark_system.set_up(2, 0, src)
 	spark_system.attach(src)
@@ -228,12 +279,12 @@
 
 	become_hearing_sensitive(trait_source = ROUNDSTART_TRAIT)
 	for(var/key in equip_by_category)
-		if(key == MECHA_L_ARM || key == MECHA_R_ARM)
+		if(key == MECHA_L_ARM || key == MECHA_R_ARM || key == MECHA_L_BACK || key == MECHA_R_BACK)
 			var/path = equip_by_category[key]
 			if(!path)
 				continue
 			var/obj/item/mecha_parts/mecha_equipment/thing = new path
-			thing.attach(src, key == MECHA_R_ARM)
+			thing.attach(src, (key == MECHA_R_ARM || key == MECHA_R_BACK))
 			continue
 		for(var/path in equip_by_category[key])
 			var/obj/item/mecha_parts/mecha_equipment/thing = new path
@@ -263,8 +314,10 @@
 	QDEL_NULL(smoke_system)
 	QDEL_NULL(ui_view)
 
-	GLOB.mechas_list -= src //global mech list
-	for(var/datum/atom_hud/squad/mech_status_hud in GLOB.huds) //Add to the squad HUD
+	emp_timer = null
+
+	GLOB.mechas_list -= src
+	for(var/datum/atom_hud/squad/mech_status_hud in GLOB.huds)
 		mech_status_hud.remove_from_hud(src)
 	return ..()
 
@@ -400,7 +453,9 @@
 		flick(phase_state, src)
 	return TRUE
 
+///Restores the mech after EMP
 /obj/vehicle/sealed/mecha/proc/restore_equipment()
+	emp_timer = null
 	mecha_flags &= ~MECHA_EMPED
 	equipment_disabled = FALSE
 	update_appearance(UPDATE_OVERLAYS)
@@ -536,7 +591,7 @@
 	if(phasing)
 		balloon_alert(user, "not while [phasing]!")
 		return
-	if(HAS_TRAIT(src, TRAIT_INCAPACITATED))
+	if(user.incapacitated(TRUE))
 		return
 	if(construction_state)
 		balloon_alert(user, "end maintenance first!")
@@ -606,6 +661,25 @@
 			speech_bubble_recipients.Add(M.client)
 	INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(flick_overlay), image('icons/mob/talk.dmi', src, "machine[say_test(speech_args[SPEECH_MESSAGE])]",MOB_LAYER+1), speech_bubble_recipients, 30)
 
+///Stuff that happens when a mech finishes a jump
+/obj/vehicle/sealed/mecha/proc/on_jump_start()
+	SIGNAL_HANDLER
+	playsound(loc, 'sound/mecha/mechturn.ogg', 30, TRUE)
+	no_footstep_particle = TRUE
+
+///Stuff that happens when a mech finishes a jump
+/obj/vehicle/sealed/mecha/proc/on_jump_land()
+	SIGNAL_HANDLER
+	no_footstep_particle = FALSE
+	playsound(loc, 'sound/effects/alien/behemoth/stomp.ogg', 30, TRUE)
+	var/obj/effect/abstract/particle_holder/landing_particles
+	var/turf/current_turf = get_turf(src)
+	if(iswater(current_turf))
+		landing_particles = new(current_turf, /particles/mech_land_water)
+	else
+		landing_particles = new(current_turf, /particles/mech_land)
+	landing_particles.layer = layer - 0.01
+	QDEL_IN(landing_particles, 1 SECONDS)
 
 /////////////////////////
 ////// Access stuff /////

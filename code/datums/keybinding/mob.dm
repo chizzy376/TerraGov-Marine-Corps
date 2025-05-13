@@ -2,7 +2,6 @@
 	category = CATEGORY_MOB
 	weight = WEIGHT_MOB
 
-
 /datum/keybinding/mob/face_north
 	hotkey_keys = list("CtrlW", "CtrlNorth")
 	name = "face_north"

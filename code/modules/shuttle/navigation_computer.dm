@@ -30,7 +30,7 @@
 	/// Vertical offset from the console of the origin tile when using it
 	var/y_offset = 0
 	/// Turfs that can be landed on
-	var/list/whitelist_turfs = list(/turf/open/ground, /turf/open/floor, /turf/open/liquid/water)
+	var/list/whitelist_turfs = list(/turf/open/ground, /turf/open/floor, /turf/open/liquid/water, /turf/open/lavaland, /turf/open/urban)
 	/// Are we able to see hidden ports when using the console
 	var/see_hidden = FALSE
 	/// Delay of the place_action
@@ -382,7 +382,7 @@
 
 /datum/action/innate/shuttledocker_rotate
 	name = "Rotate"
-	action_icon = 'icons/mecha/actions_mecha.dmi'
+	action_icon = 'icons/mob/actions/actions_mecha.dmi'
 	action_icon_state = "mech_cycle_equip_off"
 
 /datum/action/innate/shuttledocker_rotate/Activate()
@@ -395,7 +395,7 @@
 
 /datum/action/innate/shuttledocker_place
 	name = "Place"
-	action_icon = 'icons/mecha/actions_mecha.dmi'
+	action_icon = 'icons/mob/actions/actions_mecha.dmi'
 	action_icon_state = "mech_zoom_off"
 
 /datum/action/innate/shuttledocker_place/Activate()
@@ -434,7 +434,7 @@
 	var/selected = input("Choose location to jump to", "Locations", null) as null|anything in sortList(L)
 	if(QDELETED(src) || QDELETED(target) || !isliving(target))
 		return
-	playsound(src, "terminal_type", 25, FALSE)
+	playsound(src, SFX_TERMINAL_TYPE, 25, FALSE)
 	if(selected)
 		var/turf/T = get_turf(L[selected])
 		if(T)

@@ -31,7 +31,7 @@
 	. = ..()
 	blink_action = new(src)
 
-/obj/item/blink_drive/update_icon()
+/obj/item/blink_drive/update_icon(updates=ALL)
 	. = ..()
 	equipped_user?.update_inv_back()
 	if(charges)
@@ -72,8 +72,16 @@
 /obj/item/blink_drive/ui_action_click(mob/user, datum/action/item_action/action, target)
 	return teleport(target, user)
 
+/obj/item/blink_drive/emp_act(severity)
+	. = ..()
+	playsound(src, 'sound/magic/lightningshock.ogg', 50, FALSE)
+	charges = 0
+	deltimer(charge_timer)
+	charge_timer = addtimer(CALLBACK(src, PROC_REF(recharge)), BLINK_DRIVE_CHARGE_TIME * (6 - severity), TIMER_STOPPABLE)
+	update_appearance(UPDATE_ICON)
+
 ///Handles the actual teleportation
-/obj/item/blink_drive/proc/teleport(atom/A, mob/user)
+/obj/item/blink_drive/proc/teleport(atom/A, mob/living/carbon/human/user)
 	if(charges <= 0)
 		user.balloon_alert(user, "no charge")
 		playsound(src, 'sound/items/blink_empty.ogg', 25, 1)
@@ -116,19 +124,23 @@
 	teleport_debuff_aoe(user)
 
 	if(!target_turf.can_teleport_here())
-		user.emote("gored")
-		user.gib() //telegibbed
+		//user.emote("gored")
+		//user.gib() //telegibbed
+		user.take_overall_damage(50, BRUTE)
+		user.emote("scream")
 		if(pulled_target && ismob(pulled_target))
-			var/mob/mob_target = pulled_target
-			mob_target.emote("gored")
-			mob_target.gib()
+			var/mob/living/mob_target = pulled_target
+			//mob_target.emote("gored")
+			//mob_target.gib()
+			mob_target.take_overall_damage(50, BRUTE)
+			mob_target.emote("scream")
 		return
 
 	COOLDOWN_START(src, blink_stability_cooldown, 1 SECONDS)
 	charges --
 	deltimer(charge_timer)
 	charge_timer = addtimer(CALLBACK(src, PROC_REF(recharge)), BLINK_DRIVE_CHARGE_TIME * 2, TIMER_STOPPABLE)
-	update_icon()
+	update_appearance(UPDATE_ICON)
 	return TRUE
 
 ///Recharges the drive, and sets another timer if not maxed out
@@ -139,7 +151,7 @@
 		charge_timer = addtimer(CALLBACK(src, PROC_REF(recharge)), BLINK_DRIVE_CHARGE_TIME, TIMER_STOPPABLE)
 	else
 		charge_timer = null
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 ///The effects applied on teleporting from or to a location
 /obj/item/blink_drive/proc/teleport_debuff_aoe(atom/movable/teleporter)

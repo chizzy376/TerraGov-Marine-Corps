@@ -27,10 +27,12 @@
 #define COOLDOWN_RACK_BOLT "rack_bolt"
 #define COOLDOWN_LIGHT "cooldown_light"
 #define COOLDOWN_JETPACK "jetpack"
+#define COOLDOWN_SKILL_ORDERS "skill_orders"
 #define COOLDOWN_CIC_ORDERS "cic_orders"
 #define COOLDOWN_HUD_ORDER "hud_order"
 #define COOLDOWN_CLOAK_IMPLANT "cloak_implant"
 #define COOLDOWN_DRONE_CLOAK "drone_cloak"
+#define COOLDOWN_MAW_GLOB "maw_glob"
 #define COOLDOWN_XENO_TURRETS_ALERT "xeno_turrets_alert"
 #define COOLDOWN_PARALYSE_ACID "acid_spray_paralyse"
 #define COOLDOWN_RELAY_MOVE "remote_relay_moves"
@@ -55,16 +57,20 @@
 #define COOLDOWN_ARMORED_HORN "cooldown_armored_horn"
 #define COOLDOWN_WHISTLE_BLOW "cooldown_whistle_blow"
 #define COOLDOWN_WHISTLE_WARCRY "cooldown_whistle_warcry"
+#define COOLDOWN_ARMORED_SMOKE "cooldown_armored_smoke"
+#define COOLDOWN_LOCATE_APC "cooldown_locate_apc"
 
 //Mecha cooldowns
 #define COOLDOWN_MECHA "mecha"
 #define COOLDOWN_MECHA_MESSAGE "mecha_message"
-#define COOLDOWN_MECHA_EQUIPMENT(type) ("mecha_equip_[type]")
+#define COOLDOWN_MECHA_EQUIPMENT(cooldown_key) ("mecha_equip_[cooldown_key]")
 #define COOLDOWN_MECHA_ARMOR "mecha_armor"
+#define COOLDOWN_MECHA_ASSAULT_ARMOR "mecha_assault_armor"
 #define COOLDOWN_MECHA_MELEE_ATTACK "mecha_melee"
 #define COOLDOWN_MECHA_SMOKE "mecha_smoke"
 #define COOLDOWN_MECHA_SKYFALL "mecha_skyfall"
 #define COOLDOWN_MECHA_MISSILE_STRIKE "mecha_missile_strike"
+#define COOLDOWN_MECHA_DASH "mecha_dash"
 
 #define COOLDOWN_VEHICLE_CRUSHSOUND "cooldown_vehicle_crushsound"
 //// COOLDOWN SYSTEMS
