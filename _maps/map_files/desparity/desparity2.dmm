@@ -1734,7 +1734,10 @@
 /obj/effect/landmark/xeno_resin_door{
 	dir = 4
 	},
-/turf/closed/wall/r_wall/engineership,
+/obj/structure/prop/urban/fakeplatforms/platform1{
+	dir = 8
+	},
+/turf/open/engineership/engineer_floor9,
 /area/lv624/lazarus/crashed_ship/desparity)
 "id" = (
 /obj/structure/flora/ausbushes/genericbush{
